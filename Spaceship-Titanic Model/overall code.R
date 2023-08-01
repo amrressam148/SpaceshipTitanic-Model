@@ -1,0 +1,197 @@
+
+#DATA PREPARATION AND PREPROCESSING OF TRAINING DATA
+
+
+df <- read_csv('data/spaceship-titanic/train.csv')
+head(df)
+
+dim(df)
+
+summary(df)
+
+str(df)
+
+#CHECKING FOR ANY MISSING VALUES IN THE DATA
+sum(is.na(df))
+
+
+#CLEANING THE DATA
+df$HomePlanet[is.na(df$HomePlanet)] <- na.omit(df$HomePlanet)
+df$CryoSleep[is.na(df$CryoSleep)] <- na.omit(df$CryoSleep)
+df$Cabin[is.na(df$Cabin)] <- na.omit(df$Cabin)
+df$Destination[is.na(df$Destination)] <- na.omit(df$Destination)
+df$VIP[is.na(df$VIP)] <- na.omit(df$VIP)
+df$Name[is.na(df$Name)] <- na.omit(df$Name)
+
+df$Age[is.na(df$Age)] <- median(df$Age,na.rm=TRUE)
+df$RoomService[is.na(df$RoomService)] <- median(df$RoomService,na.rm=TRUE)
+df$FoodCourt[is.na(df$FoodCourt)] <- median(df$FoodCourt,na.rm=TRUE)
+df$ShoppingMall[is.na(df$ShoppingMall)] <- median(df$ShoppingMall,na.rm=TRUE)
+df$Spa[is.na(df$Spa)] <- median(df$Spa,na.rm=TRUE)
+df$VRDeck[is.na(df$VRDeck)] <- median(df$VRDeck,na.rm=TRUE)
+
+#ENCODING THE CATEGORICAL VARIABLES
+
+df$CryoSleep <- as.factor(df$CryoSleep)
+
+df$Transported <- as.factor(df$Transported)
+
+df$VIP <- as.factor(df$VIP)
+# 
+# # Remove rows with missing values in the target variable
+# df <- na.omit(df)
+# 
+# # Encoding the Categorical Variables
+# df$CryoSleep <- as.factor(df$CryoSleep)
+# 
+# # Check unique values of the target variable
+# unique_values <- unique(df$Transported)
+# print(unique_values)
+# 
+# # Check if the target variable is suitable for classification
+# if (length(unique_values) == 1) {
+#   cat("Error: The target variable has only one unique value. Data lacks variability for classification.\n")
+# } else {
+#   df$Transported <- ifelse(df$Transported == "Yes", 1, 0) # Convert to numeric binary (0 or 1)
+#   df$VIP <- as.factor(df$VIP)
+#   
+#   # Splitting the Data into Training and Validation Sets
+#   set.seed(123)
+#   library(caret)  # Make sure 'caret' library is loaded
+#   train_index <- createDataPartition(df$Transported, p = 0.8, list = FALSE)
+#   train <- df[train_index, ]
+#   validation <- df[-train_index, ]
+#   
+#   # Defining the Predictors and Target Variables
+#   predictors <- c("Age", "RoomService", "FoodCourt", "ShoppingMall", "Spa", "VRDeck")
+#   target <- "Transported"
+#   
+#   # Building the Model on the Training Set
+#   dt_model <- rpart(formula(paste(target, "~", paste(predictors, collapse = "+"))), data = train, method = "class")
+#   
+#   # Making Predictions on the Validation Set
+#   validation$prediction <- predict(dt_model, validation, type = "class")
+#   
+#   # Calculating the Accuracy of the Model
+#   accuracy <- sum(validation$prediction == validation$Transported) / nrow(validation)
+#   cat("Accuracy of the model on the validation set:", accuracy, "\n")
+# }
+
+#DATA PREPARATION AND PREPROCESSING OF TESTING DATA
+
+df1 <- read_csv('data/spaceship-titanic/test.csv')
+head(df1)
+
+dim(df1)
+
+summary(df1)
+
+str(df1)
+
+#CHECKING FOR ANY MISSING VALUES IN THE DATA
+sum(is.na(df1))
+
+colSums(is.na(df1))
+
+#CLEANING THE DATA
+df1$HomePlanet[is.na(df1$HomePlanet)] <- na.omit(df1$HomePlanet)
+df1$CryoSleep[is.na(df1$CryoSleep)] <- na.omit(df1$CryoSleep)
+df1$Cabin[is.na(df1$Cabin)] <- na.omit(df1$Cabin)
+df1$Destination[is.na(df1$Destination)] <- na.omit(df1$Destination)
+df1$VIP[is.na(df1$VIP)] <- na.omit(df1$VIP)
+df1$Name[is.na(df1$Name)] <- na.omit(df1$Name)
+
+df1$Age[is.na(df1$Age)] <- median(df1$Age,na.rm=TRUE)
+df1$RoomService[is.na(df1$RoomService)] <- median(df1$RoomService,na.rm=TRUE)
+df1$FoodCourt[is.na(df1$FoodCourt)] <- median(df1$FoodCourt,na.rm=TRUE)
+df1$ShoppingMall[is.na(df1$ShoppingMall)] <- median(df1$ShoppingMall,na.rm=TRUE)
+df1$Spa[is.na(df1$Spa)] <- median(df1$Spa,na.rm=TRUE)
+df1$VRDeck[is.na(df1$VRDeck)] <- median(df1$VRDeck,na.rm=TRUE)
+
+
+
+
+#DATA EXPLORATION AND DATA VISUALIZATION
+
+
+#LOADING THE NECESSARY PACKAGES
+library(reshape2)
+library(GGally)
+library(dplyr)
+library(ggplot2)
+
+
+#DISPLAYING THE PASSENGER ID AND AGE OF THE PASSENGER WHO IS GETTING TRANSPORTED
+df2 <- df%>%
+  filter(df$Transported=="TRUE")%>%
+  group_by(PassengerId)%>%
+  summarise(Age,Name,Transported)
+
+df2
+
+
+#RoomService, FoodCourt, ShoppingMall, Spa, VRDeck - Amount the passenger has billed at each of the Spaceship Titanic's many luxury amenities.
+#SO LETS COMBINE THE COLUMNS AND FIND THE TOTAL SPENDING OF EACH PERSON WHO IS TRANSPORTED
+df3 <- df%>%
+  mutate(TotalSpending=RoomService+FoodCourt+ShoppingMall+Spa+VRDeck)%>%
+  group_by(PassengerId,Name,Age,Transported)%>%
+  summarise(TotalSpending)
+
+df3
+
+#DISPLAYING THE CORRELATION BETWEEN THE VARIABLES
+cor <- cor(df[,c("Age","RoomService","FoodCourt","ShoppingMall","Spa","VRDeck")])
+cor
+
+#PLOTTING THE CORRELATION MATRIX
+ggplot(melt(cor),aes(x=Var1,y=Var2,fill=value))+geom_tile()+scale_fill_gradient2(high="red",low="white",midpoint= 0)+theme(axis.text.x=element_text(angle=45,vjust=1,size=10,hjust=1))+labs(title="CORRELATION MATRIX")
+
+
+#PLOTTING THE CORRELATION PLOT OF ALL VARIABLES
+ggpairs(df[,c(6,8,9,10,11,12)])
+
+
+
+#PLOTTING THE AGE OF PASSENGER VS TRANSPORTED 
+ggplot(df,aes(x=Age,fill=Transported))+geom_bar()+labs(title="BAR PLOT OF AGE VS TRANSPORTED",x="AGE",fill="TRASNPORTED")
+
+
+#PLOTTING THE PASSENGER COUNTS WHO ARE TRANSPORTED FROM EACH PLANET
+ggplot(df,aes(x=HomePlanet,fill=Transported))+geom_bar()+labs(title="BAR PLOT OF HOME PLANET VS TRANSPORTED",x="HOME PLANET",fill="TRASNPORTED")
+
+
+#BOX PLOT OF PASSENGER AGE BY TRANSPORTED STATUS
+ggplot(df,aes(x=Age,y=Transported))+geom_boxplot()+labs(title="BOX PLOT OF AGE VS TRANSPORTED",x="AGE",fill="TRASNPORTED")
+
+
+#SCATTER PLOT OF TOTAL SPENDING OF TRANSPORTED PASSENGER
+ggplot(df3,aes(x=TotalSpending,y=Transported))+geom_point()+labs(title="SCATTER PLOT OF TOTAL SPENDING VS TRANSPORTED",x="TOTAL SPENDING",fill="TRANSPORTED")
+
+
+#BAR PLOT OF VIP PASSENGER BEING TRANSPORTED
+ggplot(df,aes(x=Transported,fill=VIP))+geom_bar(position="dodge")+labs(title="BAR PLOT OF VIP VS TRANSPORTED",x="TRANSPORTED",fill="VIP")
+
+
+
+
+#DECISION TREE MODEL BUILDING
+
+#LOADING THE REQUIRED PACKAGES
+library(rpart)
+library(rpart.plot)
+
+train <- df
+test <- df1
+
+dt_model <- rpart(Transported~Age+RoomService+FoodCourt+ShoppingMall+Spa+VRDeck,data=train,method="anova")
+
+rpart.plot(dt_model)
+
+prediction <- predict(dt_model,test)
+
+head(prediction,20)
+
+
+transported <- data.frame(PassengerId=test$PassengerId,Transported=ifelse(prediction>0.5,"False","True"))
+transported
+
